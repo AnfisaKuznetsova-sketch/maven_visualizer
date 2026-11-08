@@ -11,7 +11,7 @@ DEMO_FAILURE_EXIT_CODE = 1
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = [
-    "--package", "org.example:demo:1.0",
+    "--package", "junit:junit:4.13.2",
     "--repository", "https://repo.maven.apache.org/maven2/",
 ]
 

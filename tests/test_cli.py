@@ -2,6 +2,7 @@
 
 import contextlib
 import io
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -136,7 +137,7 @@ class TestProgram(unittest.TestCase):
     """Проверяет вывод программы при настоящем запуске."""
 
     def test_output(self):
-        """Проверяет шесть строк конфигурации и код завершения."""
+        """Проверяет прямые зависимости и код завершения."""
         result = subprocess.run(
             [
                 sys.executable,
@@ -150,17 +151,14 @@ class TestProgram(unittest.TestCase):
             cwd=ROOT,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            env={**os.environ, "PYTHONIOENCODING": "utf-8"},
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stderr, "")
         self.assertEqual(result.stdout.splitlines(), [
-            "package=A",
-            "repository=tests/fixtures/repository.json",
-            "test_mode=True",
-            "output=graph.svg",
-            "ascii_tree=True",
-            "filter=B",
+            "Прямые зависимости A:", "B", "C",
         ])
 
 
