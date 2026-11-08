@@ -5,6 +5,10 @@ from pathlib import Path
 import subprocess
 import sys
 
+SUCCESS_EXIT_CODE = 0
+INVALID_ARGUMENTS_EXIT_CODE = 2
+DEMO_FAILURE_EXIT_CODE = 1
+
 ROOT = Path(__file__).resolve().parents[1]
 BASE = [
     "--package", "org.example:demo:1.0",
@@ -14,7 +18,7 @@ BASE = [
 
 def scenarios():
     """Возвращает названия, аргументы и ожидаемые коды завершения."""
-    yield "Maven: значения по умолчанию", BASE, 0
+    yield "Maven: значения по умолчанию", BASE, SUCCESS_EXIT_CODE
 
     yield "Все параметры: тестовый режим", [
         "--package", "A",
@@ -23,27 +27,31 @@ def scenarios():
         "--output", "demo.svg",
         "--ascii-tree",
         "--filter", "B",
-    ], 0
+    ], SUCCESS_EXIT_CODE
 
-    yield "Ошибка --package", BASE + ["--package", "bad"], 2
-    yield "Ошибка --repository", BASE + ["--repository", "bad-url"], 2
-    yield "Ошибка --test-mode", BASE + ["--test-mode=false"], 2
-    yield "Ошибка --output", BASE + ["--output", "graph.png"], 2
-    yield "Ошибка --ascii-tree", BASE + ["--ascii-tree=1"], 2
-    yield "Ошибка --filter", BASE + ["--filter", ""], 2
+    errors = [
+        ("--package", ["--package", "bad"]),
+        ("--repository", ["--repository", "bad-url"]),
+        ("--test-mode", ["--test-mode=false"]),
+        ("--output", ["--output", "graph.png"]),
+        ("--ascii-tree", ["--ascii-tree=1"]),
+        ("--filter", ["--filter", ""]),
+    ]
+    for option, args in errors:
+        yield f"Ошибка {option}", BASE + args, INVALID_ARGUMENTS_EXIT_CODE
 
     yield "Отсутствует тестовый файл", [
         "--package", "A",
         "--test-mode",
         "--repository", "missing.json",
-    ], 2
+    ], INVALID_ARGUMENTS_EXIT_CODE
 
 
 def run_case(title, args, expected):
     """Показывает результат примера и отличает ожидаемую ошибку от сбоя."""
     command = [sys.executable, str(ROOT / "src" / "main.py"), *args]
     print(f"\n{title}")
-    if expected == 2:
+    if expected == INVALID_ARGUMENTS_EXIT_CODE:
         print("Ожидается отказ: намеренно переданы неверные параметры.")
     else:
         print("Ожидается успешный запуск.")
@@ -73,9 +81,9 @@ def main():
     print(f"\nИтог: пройдено {passed} из {len(cases)} проверок.")
     if passed == len(cases):
         print("Все проверки пройдены. Ожидаемые ошибки обработаны верно.")
-        return 0
+        return SUCCESS_EXIT_CODE
     print("Есть неожиданные результаты: см. строки [FAIL] выше.")
-    return 1
+    return DEMO_FAILURE_EXIT_CODE
 
 
 if __name__ == "__main__":

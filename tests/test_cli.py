@@ -17,7 +17,7 @@ from config import parse_cli
 class TestConfig(unittest.TestCase):
     """Проверяет разбор и проверку параметров."""
 
-    def setUp(self):
+    def prepare_config(self):
         """Подготавливает временную папку и корректные аргументы."""
         self.folder = tempfile.TemporaryDirectory()
         self.addCleanup(self.folder.cleanup)
@@ -41,6 +41,7 @@ class TestConfig(unittest.TestCase):
 
     def test_defaults(self):
         """Проверяет значения необязательных параметров."""
+        self.prepare_config()
         config = parse_cli(self.base[:-2])
 
         self.assertEqual(config.package, "org.example:demo:1.0")
@@ -51,6 +52,7 @@ class TestConfig(unittest.TestCase):
 
     def test_all_parameters(self):
         """Проверяет запуск со всеми шестью параметрами."""
+        self.prepare_config()
         repository = Path(self.folder.name) / "test repository.json"
         repository.write_text('{"A": []}', encoding="utf-8")
 
@@ -73,6 +75,7 @@ class TestConfig(unittest.TestCase):
 
     def test_errors_for_all_parameters(self):
         """Проверяет ошибочное значение каждого параметра."""
+        self.prepare_config()
         cases = [
             ("--package", ["--package", "bad"]),
             ("--repository", ["--repository", "wrong-url"]),
@@ -88,12 +91,14 @@ class TestConfig(unittest.TestCase):
 
     def test_required_parameters(self):
         """Проверяет отсутствие обязательных параметров."""
+        self.prepare_config()
         self.assert_invalid([], "--package")
         self.assert_invalid(self.base[2:], "--package")
         self.assert_invalid(self.base[:2], "--repository")
 
     def test_missing_test_file(self):
         """Проверяет отсутствие файла тестового репозитория."""
+        self.prepare_config()
         missing = Path(self.folder.name) / "missing.json"
         args = [
             "--package", "A",
@@ -105,6 +110,7 @@ class TestConfig(unittest.TestCase):
 
     def test_invalid_test_package(self):
         """Проверяет запрет строчных букв в тестовом имени."""
+        self.prepare_config()
         args = self.base + [
             "--test-mode",
             "--package", "abc",
@@ -114,6 +120,7 @@ class TestConfig(unittest.TestCase):
 
     def test_missing_output_directory(self):
         """Проверяет отсутствие папки для изображения."""
+        self.prepare_config()
         output = Path(self.folder.name) / "missing" / "graph.svg"
         args = self.base + ["--output", str(output)]
 
@@ -121,6 +128,7 @@ class TestConfig(unittest.TestCase):
 
     def test_unknown_parameter(self):
         """Проверяет обработку неизвестной опции."""
+        self.prepare_config()
         self.assert_invalid(self.base + ["--unknown"], "--unknown")
 
 
