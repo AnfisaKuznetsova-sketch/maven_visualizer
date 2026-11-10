@@ -1,0 +1,7 @@
+{
+  "A": ["BLOCK", "KEEP"],
+  "BLOCK": ["HIDDEN"],
+  "KEEP": ["LEAF"],
+  "HIDDEN": [],
+  "LEAF": []
+}

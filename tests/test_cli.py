@@ -137,7 +137,7 @@ class TestProgram(unittest.TestCase):
     """Проверяет вывод программы при настоящем запуске."""
 
     def test_output(self):
-        """Проверяет прямые зависимости и код завершения."""
+        """Проверяет граф, фильтрацию и код завершения."""
         result = subprocess.run(
             [
                 sys.executable,
@@ -158,7 +158,11 @@ class TestProgram(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stderr, "")
         self.assertEqual(result.stdout.splitlines(), [
-            "Прямые зависимости A:", "B", "C",
+            "Граф зависимостей A:",
+            "A -> C",
+            "C -> (нет зависимостей)",
+            "Порядок DFS: A -> C",
+            "Циклов нет.",
         ])
 
 

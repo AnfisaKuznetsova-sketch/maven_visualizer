@@ -20,7 +20,7 @@ def nonempty(value):
 def build_parser():
     """Создаёт парсер шести пользовательских параметров."""
     parser = argparse.ArgumentParser(
-        description="Визуализатор зависимостей Maven: этап 1",
+        description="Визуализатор зависимостей Maven: этап 3",
         allow_abbrev=False,
     )
     parser.add_argument(

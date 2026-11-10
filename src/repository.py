@@ -1,4 +1,4 @@
-"""Чтение прямых зависимостей из локального тестового JSON-репозитория."""
+"""Тестовый JSON-репозиторий с буквенными именами пакетов."""
 
 import json
 import re
@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def validate_graph(graph):
-    """Проверяет имена узлов, списки зависимостей и наличие всех узлов."""
+    """Проверяет имена, списки зависимостей и наличие упомянутых узлов."""
     if not isinstance(graph, dict):
         raise ValueError("Тестовый репозиторий должен быть JSON-объектом")
     for name, dependencies in graph.items():
@@ -20,14 +20,31 @@ def validate_graph(graph):
                 raise ValueError(message)
 
 
-def test_dependencies(package, filename):
-    """Читает JSON и возвращает только непосредственных соседей пакета."""
+def read_graph(filename):
+    """Читает и проверяет JSON один раз перед обходом графа."""
     try:
         graph = json.loads(Path(filename).read_text(encoding="utf-8"))
     except (OSError, ValueError) as error:
         raise ValueError("Не удалось прочитать JSON тестового репозитория") \
             from error
     validate_graph(graph)
-    if package not in graph:
-        raise ValueError(f"Пакет {package} отсутствует в тестовом репозитории")
-    return list(dict.fromkeys(graph[package]))
+    return graph
+
+
+class JsonRepository:
+    """Предоставляет прямые зависимости из загруженного JSON-объекта."""
+
+    def __init__(self, filename):
+        """Сохраняет проверенный граф для всех последующих запросов."""
+        self.graph = read_graph(filename)
+
+    def direct_dependencies(self, package):
+        """Возвращает прямых соседей или сообщает об неизвестном пакете."""
+        if package not in self.graph:
+            raise ValueError(f"Пакет {package} отсутствует в репозитории")
+        return list(dict.fromkeys(self.graph[package]))
+
+
+def test_dependencies(package, filename):
+    """Сохраняет интерфейс второго этапа для запроса прямых соседей."""
+    return JsonRepository(filename).direct_dependencies(package)

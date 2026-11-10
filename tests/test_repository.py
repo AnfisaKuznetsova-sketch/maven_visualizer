@@ -1,4 +1,4 @@
-"""Проверки тестового JSON и CLI второго этапа без внешней сети."""
+"""Проверки тестового JSON и CLI третьего этапа без внешней сети."""
 
 import contextlib
 import io
@@ -64,14 +64,15 @@ class TestMain(unittest.TestCase):
         """Обычный режим вызывает собственный анализатор Maven."""
         with patch("main.MavenRepository") as repository:
             instance = repository.return_value
-            instance.direct_dependencies.return_value = ["g:lib:2"]
+            graph = {"g:app:1": ["g:lib:2"], "g:lib:2": []}
+            instance.direct_dependencies.side_effect = graph.__getitem__
             code, output, errors = self.invoke([
                 "--package", "g:app:1", "--repository", "https://example.org",
             ])
         self.assertEqual(code, main.SUCCESS_EXIT_CODE)
         self.assertIn("g:lib:2", output)
         self.assertEqual(errors, "")
-        instance.direct_dependencies.assert_called_once_with("g:app:1")
+        self.assertEqual(instance.direct_dependencies.call_count, len(graph))
 
     def test_data_error(self):
         """Ошибка загрузки возвращает код 1 без traceback."""
@@ -88,13 +89,14 @@ class TestMain(unittest.TestCase):
 
     def test_empty_result(self):
         """Для пустого списка зависимостей выводится понятное сообщение."""
-        with patch("main.test_dependencies", return_value=[]):
+        with patch("main.JsonRepository") as repository:
+            repository.return_value.direct_dependencies.return_value = []
             code, output, errors = self.invoke([
                 "--package", "C", "--test-mode", "--repository",
                 str(ROOT / "tests" / "fixtures" / "repository.json"),
             ])
         self.assertEqual(code, main.SUCCESS_EXIT_CODE)
-        self.assertIn("Прямых зависимостей нет", output)
+        self.assertIn("(нет зависимостей)", output)
         self.assertEqual(errors, "")
 
 
