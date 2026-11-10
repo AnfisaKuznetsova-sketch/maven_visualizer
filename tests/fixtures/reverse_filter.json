@@ -1,0 +1,7 @@
+{
+  "ROOT": ["BLOCK"],
+  "BLOCK": ["TARGET"],
+  "KEEP": ["TARGET"],
+  "TARGET": [],
+  "OTHER": []
+}

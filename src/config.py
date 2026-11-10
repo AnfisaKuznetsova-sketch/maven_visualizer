@@ -17,10 +17,36 @@ def nonempty(value):
     return value
 
 
+def add_reverse_options(parser):
+    """Добавляет режим обратного поиска и корень области анализа."""
+    parser.add_argument(
+        "--reverse", action="store_true",
+        help="вывести обратные зависимости пакета --package",
+    )
+    parser.add_argument(
+        "--root", default=None, type=nonempty,
+        help="корень графа для обратного поиска; обязателен для Maven",
+    )
+
+
+def validate_reverse_options(config):
+    """Проверяет область поиска и сочетания дополнительных параметров."""
+    if config.root is not None:
+        if not config.reverse:
+            raise ValueError("--root используется только вместе с --reverse")
+        try:
+            validate_package(config.root, config.test_mode)
+        except ValueError as error:
+            raise ValueError(str(error).replace("--package", "--root")) \
+                from error
+    if config.reverse and not config.test_mode and config.root is None:
+        raise ValueError("Для обратного поиска Maven укажите --root PACKAGE")
+
+
 def build_parser():
-    """Создаёт парсер шести пользовательских параметров."""
+    """Создаёт парсер основных и дополнительных параметров."""
     parser = argparse.ArgumentParser(
-        description="Визуализатор зависимостей Maven: этап 3",
+        description="Визуализатор зависимостей Maven: этап 4",
         allow_abbrev=False,
     )
     parser.add_argument(
@@ -47,6 +73,7 @@ def build_parser():
         "--filter", default=None, type=nonempty,
         help="исключать пакеты, содержащие эту подстроку",
     )
+    add_reverse_options(parser)
     return parser
 
 
@@ -121,6 +148,7 @@ def parse_cli(argv=None):
     if config.filter is None:
         config.filter = ""
     try:
+        validate_reverse_options(config)
         validate_package(config.package, config.test_mode)
         if config.test_mode:
             validate_test_file(config.repository)
