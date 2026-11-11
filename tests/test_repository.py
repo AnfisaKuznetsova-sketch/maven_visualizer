@@ -55,9 +55,11 @@ class TestMain(unittest.TestCase):
         """Запускает точку входа с перехватом потоков."""
         output, errors = io.StringIO(), io.StringIO()
         with patch.object(sys, "argv", ["main.py", *args]):
-            with contextlib.redirect_stdout(output):
-                with contextlib.redirect_stderr(errors):
-                    code = main.main()
+            with patch("main.export_graph") as exporter:
+                exporter.return_value = (ROOT / "graph.mmd", ROOT / "graph.svg")
+                with contextlib.redirect_stdout(output):
+                    with contextlib.redirect_stderr(errors):
+                        code = main.main()
         return code, output.getvalue(), errors.getvalue()
 
     def test_real_mode_calls_maven(self):

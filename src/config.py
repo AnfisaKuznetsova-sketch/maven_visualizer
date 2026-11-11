@@ -46,7 +46,7 @@ def validate_reverse_options(config):
 def build_parser():
     """Создаёт парсер основных и дополнительных параметров."""
     parser = argparse.ArgumentParser(
-        description="Визуализатор зависимостей Maven: этап 4",
+        description="Визуализатор зависимостей Maven: этап 5",
         allow_abbrev=False,
     )
     parser.add_argument(
@@ -63,7 +63,7 @@ def build_parser():
     )
     parser.add_argument(
         "--output", default="graph.svg", type=nonempty,
-        help="путь к будущему SVG-файлу (по умолчанию graph.svg)",
+        help="путь к SVG-файлу (по умолчанию graph.svg)",
     )
     parser.add_argument(
         "--ascii-tree", action="store_true",

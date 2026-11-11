@@ -4,15 +4,16 @@ import contextlib
 import io
 import os
 from pathlib import Path
-import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from config import parse_cli
+import main
 
 
 class TestConfig(unittest.TestCase):
@@ -137,33 +138,26 @@ class TestProgram(unittest.TestCase):
     """Проверяет вывод программы при настоящем запуске."""
 
     def test_output(self):
-        """Проверяет граф, фильтрацию и код завершения."""
-        result = subprocess.run(
-            [
-                sys.executable,
-                str(ROOT / "src" / "main.py"),
-                "--package", "A",
-                "--repository", "tests/fixtures/repository.json",
-                "--test-mode",
-                "--ascii-tree",
-                "--filter", "B",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            env={**os.environ, "PYTHONIOENCODING": "utf-8"},
-        )
-
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stderr, "")
-        self.assertEqual(result.stdout.splitlines(), [
-            "Граф зависимостей A:",
-            "A -> C",
-            "C -> (нет зависимостей)",
-            "Порядок DFS: A -> C",
-            "Циклов нет.",
+        """Проверяет граф, фильтр, ASCII-дерево и передачу на экспорт."""
+        args = ["main.py", "--package", "A", "--repository",
+                "tests/fixtures/repository.json", "--test-mode",
+                "--ascii-tree", "--filter", "B"]
+        output, errors = io.StringIO(), io.StringIO()
+        with patch.object(sys, "argv", args):
+            with patch("main.export_graph") as exporter:
+                exporter.return_value = (ROOT / "graph.mmd", ROOT / "graph.svg")
+                with contextlib.redirect_stdout(output):
+                    with contextlib.redirect_stderr(errors):
+                        code = main.main()
+        self.assertEqual(code, main.SUCCESS_EXIT_CODE)
+        self.assertEqual(errors.getvalue(), "")
+        self.assertEqual(output.getvalue().splitlines()[:8], [
+            "Граф зависимостей A:", "A -> C", "C -> (нет зависимостей)",
+            "Порядок DFS: A -> C", "Циклов нет.", "ASCII-дерево:",
+            "A", "`-- C",
         ])
+        self.assertIn("SVG сохранён:", output.getvalue())
+        exporter.assert_called_once()
 
 
 if __name__ == "__main__":

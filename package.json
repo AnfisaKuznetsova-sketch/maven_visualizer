@@ -1,0 +1,9 @@
+{
+  "name": "maven-visualizer",
+  "version": "0.5.0",
+  "private": true,
+  "description": "Mermaid renderer for the Maven dependency visualizer",
+  "devDependencies": {
+    "@mermaid-js/mermaid-cli": "11.12.0"
+  }
+}

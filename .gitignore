@@ -8,3 +8,7 @@ venv/
 Thumbs.db
 .DS_Store
 output/
+node_modules/
+package-lock.json
+*.svg
+*.mmd
