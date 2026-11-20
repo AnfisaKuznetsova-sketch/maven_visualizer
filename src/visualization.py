@@ -4,7 +4,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as element_tree
 
 ROOT = Path(__file__).resolve().parents[1]
 RENDER_TIMEOUT = 90
@@ -54,13 +54,13 @@ def render_svg(source, target):
             if process.returncode:
                 details = process.stderr.strip() or process.stdout.strip()
                 raise ValueError(f"Ошибка Mermaid CLI: {details}")
-            root = ET.parse(temporary).getroot()
+            root = element_tree.parse(temporary).getroot()
             if root.tag.rsplit("}", 1)[-1] != "svg":
                 raise ValueError("Mermaid CLI не создал SVG")
             temporary.replace(target)
     except subprocess.TimeoutExpired as error:
         raise ValueError("Превышено время создания SVG") from error
-    except (OSError, ET.ParseError) as error:
+    except (OSError, element_tree.ParseError) as error:
         raise ValueError(f"Не удалось сохранить SVG: {error}") from error
 
 
