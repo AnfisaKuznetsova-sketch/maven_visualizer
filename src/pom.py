@@ -1,7 +1,7 @@
 """Разбор XML POM, свойств и описаний прямых зависимостей Maven."""
 
 import re
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as element_tree
 
 MAX_PROPERTY_PASSES = 32
 PROPERTY_PATTERN = re.compile(r"\$\{([^}]+)\}")
@@ -14,8 +14,8 @@ DEPENDENCY_FIELDS = (
 def parse_pom(content):
     """Читает XML и убирает пространства имён для поиска элементов."""
     try:
-        root = ET.fromstring(content)
-    except ET.ParseError as error:
+        root = element_tree.fromstring(content)
+    except element_tree.ParseError as error:
         raise ValueError("POM содержит некорректный XML") from error
     for element in root.iter():
         element.tag = element.tag.rsplit("}", 1)[-1]
